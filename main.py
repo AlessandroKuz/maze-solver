@@ -1,25 +1,21 @@
 from graphics import Window, Line, Point
 from cell import Cell
+from maze import Maze
 
 
 def main():
-    window = Window(800, 600)
+    num_rows = 12
+    num_cols = 16
+    margin = 50
+    screen_x = 800
+    screen_y = 600
+    cell_size_x = (screen_x - 2 * margin) / num_cols
+    cell_size_y = (screen_y - 2 * margin) / num_rows
+    win = Window(screen_x, screen_y)
 
-    # Forward move
-    from_cell = Cell(window)
-    to_cell = Cell(window)
-    from_cell.draw(Point(400, 400), Point(500, 500))
-    to_cell.draw(Point(500, 400), Point(600, 500))
-    from_cell.draw_move(to_cell)
+    maze = Maze(margin, margin, num_rows, num_cols, cell_size_x, cell_size_y, win)
 
-    # Undo move
-    from_cell = Cell(window)
-    to_cell = Cell(window)
-    from_cell.draw(Point(200, 200), Point(300, 300))
-    to_cell.draw(Point(300, 200), Point(400, 300))
-    from_cell.draw_move(to_cell, undo=True)
-
-    window.wait_for_close()
+    win.wait_for_close()
 
 
 if __name__ == '__main__':

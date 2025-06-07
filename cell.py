@@ -3,10 +3,10 @@ from graphics import Window, Line, Point
 
 class Cell:
     def __init__(self, window: Window = None) -> None:
-        self.__has_left_wall = True
-        self.__has_right_wall = True
-        self.__has_top_wall = True
-        self.__has_bottom_wall = True
+        self.has_left_wall = True
+        self.has_right_wall = True
+        self.has_top_wall = True
+        self.has_bottom_wall = True
         self.__x1 = -1
         self.__x2 = -1
         self.__y1 = -1
@@ -22,25 +22,35 @@ class Cell:
         self.__y1 = start_point.y
         self.__y2 = end_point.y
 
-        if self.__has_left_wall:
-            point1 = Point(self.__x1, self.__y1)
-            point2 = Point(self.__x1, self.__y2)
-            self.__window.draw_line(Line(point1, point2), fill_color=fill_color)
+        white_color = "#ffffff"
 
-        if self.__has_right_wall:
-            point1 = Point(self.__x2, self.__y1)
-            point2 = Point(self.__x2, self.__y2)
+        point1 = Point(self.__x1, self.__y1)
+        point2 = Point(self.__x1, self.__y2)
+        if self.has_left_wall:
             self.__window.draw_line(Line(point1, point2), fill_color=fill_color)
+        else:
+            self.__window.draw_line(Line(point1, point2), fill_color=white_color)
 
-        if self.__has_top_wall:
-            point1 = Point(self.__x1, self.__y1)
-            point2 = Point(self.__x2, self.__y1)
+        point1 = Point(self.__x2, self.__y1)
+        point2 = Point(self.__x2, self.__y2)
+        if self.has_right_wall:
             self.__window.draw_line(Line(point1, point2), fill_color=fill_color)
+        else:
+            self.__window.draw_line(Line(point1, point2), fill_color=white_color)
 
-        if self.__has_bottom_wall:
-            point1 = Point(self.__x1, self.__y2)
-            point2 = Point(self.__x2, self.__y2)
+        point1 = Point(self.__x1, self.__y1)
+        point2 = Point(self.__x2, self.__y1)
+        if self.has_top_wall:
             self.__window.draw_line(Line(point1, point2), fill_color=fill_color)
+        else:
+            self.__window.draw_line(Line(point1, point2), fill_color=white_color)
+
+        point1 = Point(self.__x1, self.__y2)
+        point2 = Point(self.__x2, self.__y2)
+        if self.has_bottom_wall:
+            self.__window.draw_line(Line(point1, point2), fill_color=fill_color)
+        else:
+            self.__window.draw_line(Line(point1, point2), fill_color=white_color)
 
     def center_point(self):
         x_center = abs(self.__x1 + self.__x2) // 2
