@@ -1,4 +1,5 @@
 import random
+import time
 
 from cell import Cell
 from graphics import Window, Line, Point
@@ -26,8 +27,11 @@ class Maze:
         self.__cell_size_x = cell_size_x
         self.__cell_size_y = cell_size_y
         self.__window = window
+
         self.__cells = []
         self.__create_cells()
+        time.sleep(1)
+
         self.__break_entrance_and_exit()
         self.__break_walls_r(0, 0)
         self.__reset_cells_visited_status()
@@ -53,12 +57,14 @@ class Maze:
         self.__cells[column][row].draw(start_point, end_point)
         self.__animate()
 
-    def __animate(self) -> None:
+    def __animate(self, is_solving: bool = False) -> None:
         if self.__window is None:
             return
         self.__window.redraw()
-        sleep(1 / (self.__num_cols * self.__num_rows))
-        # sleep(0.00000005)
+        if is_solving:
+            sleep(1 / (self.__num_cols * self.__num_rows)**0.5)
+        else:
+            sleep(1 / (self.__num_cols * self.__num_rows))
 
     def __break_entrance_and_exit(self) -> None:
         self.__cells[0][0].has_top_wall = False
@@ -71,10 +77,28 @@ class Maze:
         while True:
             cells_to_visit = []
 
-            adjacent_cells = [(column-1, row), (column, row-1), (column+1, row), (column, row+1)]
-            adjacent_cells = list(filter(lambda coord: coord[0] >= 0 and coord[1] >= 0, adjacent_cells))
-            adjacent_cells = list(filter(lambda coord: coord[0] < self.__num_cols and coord[1] < self.__num_rows, adjacent_cells))
-            adjacent_cells = list(filter(lambda coord: not self.__cells[coord[0]][coord[1]].visited, adjacent_cells))
+            adjacent_cells = [
+                (column - 1, row),
+                (column, row - 1),
+                (column + 1, row),
+                (column, row + 1),
+            ]
+            adjacent_cells = list(
+                filter(lambda coord: coord[0] >= 0 and coord[1] >= 0, adjacent_cells)
+            )
+            adjacent_cells = list(
+                filter(
+                    lambda coord: coord[0] < self.__num_cols
+                    and coord[1] < self.__num_rows,
+                    adjacent_cells,
+                )
+            )
+            adjacent_cells = list(
+                filter(
+                    lambda coord: not self.__cells[coord[0]][coord[1]].visited,
+                    adjacent_cells,
+                )
+            )
             for adjacent_cell in adjacent_cells:
                 cells_to_visit.append(adjacent_cell)
 
@@ -86,22 +110,30 @@ class Maze:
             if new_cell_coords[0] == column + 1:
                 self.__cells[column][row].has_right_wall = False
                 self.__draw_cell(column, row)
-                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_left_wall = False
+                self.__cells[new_cell_coords[0]][
+                    new_cell_coords[1]
+                ].has_left_wall = False
                 self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
             elif new_cell_coords[1] == row + 1:
                 self.__cells[column][row].has_bottom_wall = False
                 self.__draw_cell(column, row)
-                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_top_wall = False
+                self.__cells[new_cell_coords[0]][
+                    new_cell_coords[1]
+                ].has_top_wall = False
                 self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
             elif new_cell_coords[0] == column - 1:
                 self.__cells[column][row].has_left_wall = False
                 self.__draw_cell(column, row)
-                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_right_wall = False
+                self.__cells[new_cell_coords[0]][
+                    new_cell_coords[1]
+                ].has_right_wall = False
                 self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
             else:
                 self.__cells[column][row].has_top_wall = False
                 self.__draw_cell(column, row)
-                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_bottom_wall = False
+                self.__cells[new_cell_coords[0]][
+                    new_cell_coords[1]
+                ].has_bottom_wall = False
                 self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
 
             self.__break_walls_r(new_cell_coords[0], new_cell_coords[1])
@@ -110,3 +142,75 @@ class Maze:
         for col in self.__cells:
             for cell in col:
                 cell.visited = False
+
+    def solve(self):
+        return self.__solve_r(column=0, row=0)
+
+    def __solve_r(self, column: int, row: int):
+        self.__animate(is_solving=True)
+        self.__cells[column][row].visited = True
+        current_cell = self.__cells[column][row]
+        if column == self.__num_cols - 1 and row == self.__num_rows - 1:
+            return True
+        adjacent_cells = [
+            (column - 1, row),
+            (column, row - 1),
+            (column + 1, row),
+            (column, row + 1),
+        ]
+        adjacent_cells = list(
+            filter(lambda coord: coord[0] >= 0 and coord[1] >= 0, adjacent_cells)
+        )
+        adjacent_cells = list(
+            filter(
+                lambda coord: coord[0] < self.__num_cols and coord[1] < self.__num_rows,
+                adjacent_cells,
+            )
+        )
+        for adj_cell_coords in adjacent_cells:
+            adj_cell = self.__cells[adj_cell_coords[0]][adj_cell_coords[1]]
+            if adj_cell.visited:
+                continue
+            if adj_cell_coords[0] == column + 1 and adj_cell_coords[1] == row:
+                if (
+                        not current_cell.has_right_wall
+                        and not adj_cell.has_left_wall
+                ):
+                    current_cell.draw_move(adj_cell)
+                    solved = self.__solve_r(
+                        adj_cell_coords[0], adj_cell_coords[1]
+                    )
+                    if solved:
+                        return True
+                    current_cell.draw_move(adj_cell, undo=True)
+            elif adj_cell_coords[0] == column and adj_cell_coords[1] == row + 1:
+                if (
+                    not current_cell.has_bottom_wall
+                    and not adj_cell.has_top_wall
+                ):
+                    current_cell.draw_move(adj_cell)
+                    solved = self.__solve_r(adj_cell_coords[0], adj_cell_coords[1])
+                    if solved:
+                        return True
+                    current_cell.draw_move(adj_cell, undo=True)
+            elif adj_cell_coords[0] == column - 1 and adj_cell_coords[1] == row:
+                if (
+                    not current_cell.has_left_wall
+                    and not adj_cell.has_right_wall
+                ):
+                    current_cell.draw_move(adj_cell)
+                    solved = self.__solve_r(adj_cell_coords[0], adj_cell_coords[1])
+                    if solved:
+                        return True
+                    current_cell.draw_move(adj_cell, undo=True)
+            else:
+                if (
+                        not current_cell.has_top_wall
+                        and not adj_cell.has_bottom_wall
+                ):
+                    current_cell.draw_move(adj_cell)
+                    solved = self.__solve_r(adj_cell_coords[0], adj_cell_coords[1])
+                    if solved:
+                        return True
+                    current_cell.draw_move(adj_cell, undo=True)
+        return False
