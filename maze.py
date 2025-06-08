@@ -1,3 +1,5 @@
+import random
+
 from cell import Cell
 from graphics import Window, Line, Point
 from time import sleep
@@ -5,15 +7,18 @@ from time import sleep
 
 class Maze:
     def __init__(
-            self,
-            x1: int,
-            y1: int,
-            num_rows: int,
-            num_cols: int,
-            cell_size_x: int,
-            cell_size_y: int,
-            window: Window = None
-        ) -> None:
+        self,
+        x1: int,
+        y1: int,
+        num_rows: int,
+        num_cols: int,
+        cell_size_x: int,
+        cell_size_y: int,
+        window: Window = None,
+        seed: int = None,
+    ) -> None:
+        if seed is not None:
+            random.seed(seed)
         self.__x1 = x1
         self.__y1 = y1
         self.__num_rows = num_rows
@@ -24,6 +29,7 @@ class Maze:
         self.__cells = []
         self.__create_cells()
         self.__break_entrance_and_exit()
+        self.__break_walls_r(0, 0)
 
     def __create_cells(self) -> None:
         for col in range(self.__num_cols):
@@ -50,10 +56,51 @@ class Maze:
         if self.__window is None:
             return
         self.__window.redraw()
-        sleep(0.01)
+        sleep(1 / (self.__num_cols * self.__num_rows))
+        # sleep(0.00000005)
 
     def __break_entrance_and_exit(self) -> None:
         self.__cells[0][0].has_top_wall = False
         self.__draw_cell(0, 0)
         self.__cells[self.__num_cols - 1][self.__num_rows - 1].has_bottom_wall = False
         self.__draw_cell(self.__num_cols - 1, self.__num_rows - 1)
+
+    def __break_walls_r(self, column: int, row: int) -> None:
+        self.__cells[column][row].visited = True
+        while True:
+            cells_to_visit = []
+
+            adjacent_cells = [(column-1, row), (column, row-1), (column+1, row), (column, row+1)]
+            adjacent_cells = list(filter(lambda coord: coord[0] >= 0 and coord[1] >= 0, adjacent_cells))
+            adjacent_cells = list(filter(lambda coord: coord[0] < self.__num_cols and coord[1] < self.__num_rows, adjacent_cells))
+            adjacent_cells = list(filter(lambda coord: not self.__cells[coord[0]][coord[1]].visited, adjacent_cells))
+            for adjacent_cell in adjacent_cells:
+                cells_to_visit.append(adjacent_cell)
+
+            if len(cells_to_visit) == 0:
+                self.__draw_cell(column, row)
+                return
+
+            new_cell_coords = random.choice(cells_to_visit)
+            if new_cell_coords[0] == column + 1:
+                self.__cells[column][row].has_right_wall = False
+                self.__draw_cell(column, row)
+                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_left_wall = False
+                self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
+            elif new_cell_coords[1] == row + 1:
+                self.__cells[column][row].has_bottom_wall = False
+                self.__draw_cell(column, row)
+                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_top_wall = False
+                self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
+            elif new_cell_coords[0] == column - 1:
+                self.__cells[column][row].has_left_wall = False
+                self.__draw_cell(column, row)
+                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_right_wall = False
+                self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
+            else:
+                self.__cells[column][row].has_top_wall = False
+                self.__draw_cell(column, row)
+                self.__cells[new_cell_coords[0]][new_cell_coords[1]].has_bottom_wall = False
+                self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
+
+            self.__break_walls_r(new_cell_coords[0], new_cell_coords[1])
