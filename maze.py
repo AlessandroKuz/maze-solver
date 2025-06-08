@@ -30,6 +30,7 @@ class Maze:
         self.__create_cells()
         self.__break_entrance_and_exit()
         self.__break_walls_r(0, 0)
+        self.__reset_cells_visited_status()
 
     def __create_cells(self) -> None:
         for col in range(self.__num_cols):
@@ -104,3 +105,8 @@ class Maze:
                 self.__draw_cell(new_cell_coords[0], new_cell_coords[1])
 
             self.__break_walls_r(new_cell_coords[0], new_cell_coords[1])
+
+    def __reset_cells_visited_status(self) -> None:
+        for col in self.__cells:
+            for cell in col:
+                cell.visited = False
