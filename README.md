@@ -1,5 +1,11 @@
 # maze-solver
 
+A simple maze creation and solving program.
+
+The program uses recursion for both the creation and solving phase.
+
+The maze gets solved using a Depth-first approach.
+
 ## Examples
 
 Demonstration of maze generation and its solution process.
